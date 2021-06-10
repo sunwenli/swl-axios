@@ -33,7 +33,7 @@ function transformHeaders(config: AxiosRequestConfig): any {
     return processHeaders(headers, data)
 }
 
-function transformResponseData(res:AxiosResponse):AxiosResponse {
+function transformResponseData(res: AxiosResponse): AxiosResponse {
     res.data = transformResponse(res.data)
     return res
 }

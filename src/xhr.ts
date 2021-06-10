@@ -1,15 +1,18 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
-import {parseHeaders} from './helpers/headers'
+import { parseHeaders } from './helpers/headers'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
-    return new Promise(resolve => {
-        const { data = null, url, method = 'get', headers, responseType } = config
+    return new Promise((resolve, reject) => {
+        const { data = null, url, method = 'get', headers, responseType, timeout } = config
 
         const request = new XMLHttpRequest()
         // console.log('UNSENT', request.readyState); // readyState 为 0 , xhr 代理已被创建，但尚未调用 open() 方法
 
         if (responseType) {
             request.responseType = responseType
+        }
+        if (timeout) {
+            request.timeout = timeout
         }
 
         request.open(method.toUpperCase(), url, true)
@@ -22,8 +25,19 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         //     console.log('DONE', request.readyState); // readyState 为 4，请求已完成，数据传输成功或失败
         // };
 
+        request.onerror = function handleError() {
+            reject(new Error(`Network Error`))
+        }
+
+        request.ontimeout = function handleTimeout() {
+            reject(`timeout ${timeout} ms`)
+        }
+
         request.onreadystatechange = function handlLoad() {
             if (request.readyState !== 4) {
+                return
+            }
+            if (request.status === 0) {
                 return
             }
 
@@ -34,12 +48,12 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
                 data: responseData,
                 status: request.status,
                 statusText: request.statusText,
-                headers:parseHeaders(responseHeaders),
+                headers: parseHeaders(responseHeaders),
                 config,
                 request
             }
 
-            resolve(response)
+            handleResponse(response)
         }
         Object.keys(headers).forEach(name => {
             if (data === null && name.toLowerCase() === 'content-type') {
@@ -52,5 +66,13 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
         request.send(data)
         // request.readyState 为 2 ，send方法已调用，请求头也已被接收
+
+        function handleResponse(res: AxiosResponse): void {
+            if (res.status >= 200 && res.status < 300) {
+                resolve(res)
+            } else {
+                reject(new Error(`Request failed with status ${res.status}`))
+            }
+        }
     })
 }
