@@ -1,5 +1,6 @@
 import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
 import { parseHeaders } from './helpers/headers'
+import { createAxiosError } from './helpers/error'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
     return new Promise((resolve, reject) => {
@@ -26,11 +27,11 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         // };
 
         request.onerror = function handleError() {
-            reject(new Error(`Network Error`))
+            reject(createAxiosError(`Network Error`, null, config, request))
         }
 
         request.ontimeout = function handleTimeout() {
-            reject(`timeout ${timeout} ms`)
+            reject(createAxiosError(`timeout ${timeout} ms`, 'ECONNABORTED', config, request))
         }
 
         request.onreadystatechange = function handlLoad() {
@@ -71,7 +72,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             if (res.status >= 200 && res.status < 300) {
                 resolve(res)
             } else {
-                reject(new Error(`Request failed with status ${res.status}`))
+                reject(createAxiosError(`Request failed with status ${res.status}`, null, config, request, res))
             }
         }
     })
