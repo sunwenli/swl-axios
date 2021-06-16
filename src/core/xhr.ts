@@ -1,6 +1,6 @@
-import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from './types'
-import { parseHeaders } from './helpers/headers'
-import { createAxiosError } from './helpers/error'
+import { AxiosRequestConfig, AxiosPromise, AxiosResponse } from '../types'
+import { parseHeaders } from '../helpers/headers'
+import { createAxiosError } from '../helpers/error'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
 
     return new Promise((resolve, reject) => {
@@ -16,7 +16,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             request.timeout = timeout
         }
 
-        request.open(method.toUpperCase(), url, true)
+        request.open(method.toUpperCase(), url!, true)
         // console.log('OPENED', request.readyState); // readyState 为 1 ，open()方法已出发，可以设置请求头（setRequestHeader），也可以发起请求(send)
 
         // request.onprogress = function handleProgress() {
