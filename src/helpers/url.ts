@@ -12,36 +12,43 @@ function encode(params: string): string {
         .replace(/%5D/g, ']')
 }
 
-export function buildURL(url: string, params?: any): string {
+export function buildURL(url: string, params?: any, serializer?: (param?: any) => string): string {
     if (!params) {
         return url
     }
 
-    const parts: string[] = []
-    Object.keys(params).forEach(key => {
-        const val = params[key]
-        if (val === null || typeof val === 'undefined') {
-            return
-        }
-        let values = []
-        if (Array.isArray(val)) {
-            values = val
-            key += '[]'
-        } else {
-            values = [val]
-        }
-
-        values.forEach(value => {
-            if (isDate(value)) {
-                value = value.toISOString()
-            } else if (isPlainObject(value)) {
-                value = JSON.stringify(value)
+    let serializedParams
+    if (isURLSearchParams(params)) {
+        serializedParams = params.toString()
+    } else if (serializer) {
+        serializedParams = serializer(params)
+    } else {
+        const parts: string[] = []
+        Object.keys(params).forEach(key => {
+            const val = params[key]
+            if (val === null || typeof val === 'undefined') {
+                return
             }
-            parts.push(`${encode(key)}=${encode(value)}`)
-        })
-    })
+            let values = []
+            if (Array.isArray(val)) {
+                values = val
+                key += '[]'
+            } else {
+                values = [val]
+            }
 
-    let serializedParams = parts.join('&')
+            values.forEach(value => {
+                if (isDate(value)) {
+                    value = value.toISOString()
+                } else if (isPlainObject(value)) {
+                    value = JSON.stringify(value)
+                }
+                parts.push(`${encode(key)}=${encode(value)}`)
+            })
+        })
+        serializedParams = parts.join('&')
+    }
+
     if (serializedParams) {
         const hasIndex = url.indexOf('#')
         if (hasIndex !== -1) {
@@ -51,4 +58,31 @@ export function buildURL(url: string, params?: any): string {
     }
 
     return url
+}
+
+export function isURLSearchParams(params: any): boolean {
+    return params !== 'undefined' && params instanceof URLSearchParams
+}
+interface URLOrigin {
+    protocol: string
+    host: string
+}
+
+export function isURLSameOrigin(requestURL: string): boolean {
+    const parsedOrigin = resolveURL(requestURL)
+    return (
+        parsedOrigin.host === currentOrigin.host && parsedOrigin.protocol === currentOrigin.protocol
+    )
+}
+
+const urlParsingNode = document.createElement('a')
+const currentOrigin = resolveURL(window.location.href)
+
+function resolveURL(url: string): URLOrigin {
+    urlParsingNode.setAttribute('href', url)
+    const { protocol, host } = urlParsingNode
+    return {
+        protocol,
+        host
+    }
 }

@@ -30,9 +30,9 @@ app.use(express.static(__dirname, {
   }
 }))
 
-app.use(bodyParser.json())
+// app.use(bodyParser.json())
 // app.use(bodyParser.text())
-app.use(bodyParser.urlencoded({ extended: true }))
+// app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 
 app.use(multipart({
@@ -197,6 +197,7 @@ function registerMoreRouter() {
 
   router.post('/more/post', function (req, res) {
     const auth = req.headers.authorization
+    console.log('aaa', auth)
     const [type, credentials] = auth.split(' ')
     console.log(atob(credentials))
     const [username, password] = atob(credentials).split(':')
@@ -207,6 +208,7 @@ function registerMoreRouter() {
       res.end('UnAuthorization')
     }
   })
+
 
   router.get('/more/304', function (req, res) {
     res.status(304)

@@ -1,6 +1,8 @@
+import { transformResponse } from "../helpers/data";
 import { AxiosPromise, AxiosRequestConfig, AxiosResponse, RejectedFn, ResovedFn } from "../types";
-import dispatchRequest from "./dispatchRequest";
+import dispatchRequest, { transformURL } from "./dispatchRequest";
 import InterceptorManager from "./interceptorManager";
+import { mergeConfig } from "./mergeConfig";
 
 interface Interceptors {
     request: InterceptorManager<AxiosRequestConfig>
@@ -33,6 +35,7 @@ export class Axios {
         } else {
             config = url
         }
+        config = mergeConfig(this.defaults, config)
 
         const chain: PromiseChain<any>[] = [{
             resolved: dispatchRequest,
@@ -83,6 +86,11 @@ export class Axios {
 
     patch(url: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
         return this._requestWithData(url, 'patch', data, config)
+    }
+
+    getUri(config?: AxiosRequestConfig): string {
+        config = mergeConfig(this.defaults, config)
+        return transformURL(config)
     }
 
     _requestWithData(url: string, method: string, data?: any, config?: AxiosRequestConfig): AxiosPromise {
