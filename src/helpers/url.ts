@@ -1,4 +1,4 @@
-import { isDate, isPlainObject } from './util'
+import { isDate, isPlainObject, isURLSearchParams } from './util'
 
 
 function encode(params: string): string {
@@ -60,9 +60,6 @@ export function buildURL(url: string, params?: any, serializer?: (param?: any) =
     return url
 }
 
-export function isURLSearchParams(params: any): boolean {
-    return params !== 'undefined' && params instanceof URLSearchParams
-}
 interface URLOrigin {
     protocol: string
     host: string
@@ -85,4 +82,12 @@ function resolveURL(url: string): URLOrigin {
         protocol,
         host
     }
+}
+
+export function isAbsoluteURL(url: string): boolean {
+    return /^([a-z][a-z\d\+\-\.]*:)?\/\//i.test(url)
+}
+
+export function combineURL(baseURL: string, releativeURL?: string): string {
+    return releativeURL ? baseURL.replace(/\/+$/, '') + '/' + releativeURL.replace(/^\/+/, '') : baseURL
 }

@@ -48,8 +48,8 @@ export interface AxiosPromise<T = any> extends Promise<AxiosResponse<T>> { }
 
 export interface AxiosError extends Error {
     isAxiosError: boolean
+    config: AxiosRequestConfig
     code?: string | null
-    config?: AxiosRequestConfig
     request?: any
     response?: any
 }

@@ -11,7 +11,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             data = null,
             url,
             method = 'get',
-            headers,
+            headers = {},
             responseType,
             timeout,
             cancelToken,
@@ -61,11 +61,11 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             //     console.log('DONE', request.readyState); // readyState 为 4，请求已完成，数据传输成功或失败
             // };
             request.onerror = function handleError() {
-                reject(createAxiosError(`Network Error`, null, config, request))
+                reject(createAxiosError(`Network Error`, config, null, request))
             }
 
             request.ontimeout = function handleTimeout() {
-                reject(createAxiosError(`timeout ${timeout} ms`, 'ECONNABORTED', config, request))
+                reject(createAxiosError(`timeout ${timeout} ms`, config, 'ECONNABORTED', request))
             }
 
             if (onUploadProgress) {
@@ -112,7 +112,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             }
 
             if (auth) {
-                headers['Authorization'] = 'Basic ' + btoa(auth.username + ':' + auth.password)
+                headers['Authorization'] = 'Basic ' + window.btoa(auth.username + ':' + auth.password)
             }
 
             Object.keys(headers).forEach(name => {
@@ -131,7 +131,12 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
                 cancelToken.promise.then(reason => {
                     request.abort()
                     reject(reason)
-                })
+                }).catch(
+                    /* istanbul ignore next */
+                    () => {
+                        // do nothing
+                    }
+                )
             }
 
         }
@@ -140,7 +145,7 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
             if (!validateStatus || validateStatus(res.status)) {
                 resolve(res)
             } else {
-                reject(createAxiosError(`Request failed with status ${res.status}`, null, config, request, res))
+                reject(createAxiosError(`Request failed with status ${res.status}`, config, null, request, res))
             }
         }
     })
